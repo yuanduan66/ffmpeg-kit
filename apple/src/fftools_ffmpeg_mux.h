@@ -150,6 +150,8 @@ typedef struct Muxer {
 
     SyncQueue *sq_mux;
     AVPacket *sq_pkt;
+    
+    long session_id;
 } Muxer;
 
 typedef struct EncStatsFile {

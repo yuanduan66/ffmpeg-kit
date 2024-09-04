@@ -69,6 +69,8 @@ static const char *const opt_name_display_rotations[]         = {"display_rotati
 static const char *const opt_name_display_hflips[]            = {"display_hflip", NULL};
 static const char *const opt_name_display_vflips[]            = {"display_vflip", NULL};
 
+extern __thread long globalSessionId;
+
 typedef struct Demuxer {
     InputFile f;
 
@@ -87,6 +89,8 @@ typedef struct Demuxer {
     int                   thread_queue_size;
     pthread_t             thread;
     int                   non_blocking;
+    
+    long session_id;
 } Demuxer;
 
 typedef struct DemuxMsg {
@@ -258,6 +262,9 @@ static void *input_thread(void *arg)
     AVPacket *pkt;
     unsigned flags = d->non_blocking ? AV_THREAD_MESSAGE_NONBLOCK : 0;
     int ret = 0;
+    if (globalSessionId == 0) {
+        globalSessionId = d->session_id;
+    }
 
     pkt = av_packet_alloc();
     if (!pkt) {
@@ -1077,6 +1084,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
     d->loop = o->loop;
     d->duration = 0;
     d->time_base = (AVRational){ 1, 1 };
+    d->session_id = globalSessionId;
 
     f->readrate = o->readrate ? o->readrate : 0.0;
     if (f->readrate < 0.0f) {

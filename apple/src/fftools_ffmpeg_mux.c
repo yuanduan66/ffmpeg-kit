@@ -63,6 +63,7 @@
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
 
+extern __thread long globalSessionId;
 __thread int want_sdp = 1;
 
 MuxStream *ms_from_ost(OutputStream *ost)
@@ -231,6 +232,9 @@ static void *muxer_thread(void *arg)
     OutputFile *of = &mux->of;
     AVPacket  *pkt = NULL;
     int        ret = 0;
+    if (globalSessionId == 0) {
+        globalSessionId = mux->session_id;
+    }
 
     pkt = av_packet_alloc();
     if (!pkt) {
@@ -535,6 +539,7 @@ fail:
 
 int mux_check_init(Muxer *mux)
 {
+    mux->session_id = globalSessionId;
     OutputFile *of = &mux->of;
     AVFormatContext *fc = mux->fc;
     int ret, i;
